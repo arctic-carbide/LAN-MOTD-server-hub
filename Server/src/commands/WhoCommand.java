@@ -1,7 +1,7 @@
 package commands;
 
 
-public class Who implements ICommand {
+public class WhoCommand implements Command {
 
     public void call() {
 

@@ -1,6 +1,6 @@
 package commands;
 
-public class Send implements ICommand {
+public class QuitCommand implements Command {
 
     public void call() {
 

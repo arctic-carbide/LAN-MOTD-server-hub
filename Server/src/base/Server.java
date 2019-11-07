@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
-import commands.ICommand;
 
 public class Server {
     private static final String OK_MESSAGE = "200 OK";

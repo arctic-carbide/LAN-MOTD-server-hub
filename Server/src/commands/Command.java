@@ -1,5 +1,5 @@
 package commands;
 
-public interface ICommand {
+public interface Command {
     void call();
 }
