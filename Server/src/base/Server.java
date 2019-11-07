@@ -1,5 +1,5 @@
-/*
- * Server.java
+package base;/*
+ * base.Server.java
  */
 
 import java.io.*;
@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
+import commands.ICommand;
 
 public class Server {
     private static final String OK_MESSAGE = "200 OK";
@@ -44,15 +45,15 @@ public class Server {
     public static void init() throws Exception {
         Display("Initializing internal server data...");
 
-        String msgsFilename = "messages.txt"; // "Server/resources/messages.txt";
-        String usersFilename = "users.txt"; // "Server/resources/users.txt";
+        String msgsFilename = "messages.txt"; // "base.Server/resources/messages.txt";
+        String usersFilename = "users.txt"; // "base.Server/resources/users.txt";
 
         InitUsersFromFile(usersFilename);
         QueueMessagesFromFile(msgsFilename);
         OpenMessagesFile(msgsFilename);
         ValidateMessages();
 
-        Display("Server initialized!");
+        Display("base.Server initialized!");
     }
 
     private static void InitUsersFromFile(String filename) throws Exception {
@@ -222,7 +223,7 @@ public class Server {
             myServerice = new ServerSocket(SERVER_PORT); // establish a socket to put on the target port
         }
         catch (IOException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 
@@ -336,7 +337,7 @@ public class Server {
         Display("Procedure success!");
     }
 
-	public static void main(String args[])  {
+	public static void main(String[] args)  {
         System.out.println("Starting server...");
 
         try {
@@ -344,10 +345,10 @@ public class Server {
             Server.run();
         }
         catch (Exception e) {
-            System.err.println(e);
+            System.err.println(e.getMessage());
             System.exit(-1);
         }
 
-        System.out.println("Server terminating...");
+        System.out.println("base.Server terminating...");
 	}
 }
