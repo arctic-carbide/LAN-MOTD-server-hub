@@ -1,5 +1,5 @@
 package roles;
 
-public class RootUser extends StandardUser {
+public class RootUser extends KnownUser {
 
 }

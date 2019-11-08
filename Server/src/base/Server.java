@@ -3,7 +3,7 @@ package base;/*
  */
 
 import roles.RootUser;
-import roles.StandardUser;
+import roles.KnownUser;
 
 import java.io.*;
 import java.net.*;
@@ -34,7 +34,7 @@ public class Server {
     private static BufferedReader is;
     private static PrintStream os;
     private static Socket serviceSocket = null;
-    private static StandardUser user = null;
+    private static KnownUser user = null;
 
     private static final boolean DEBUG = false;
 
@@ -267,7 +267,7 @@ public class Server {
                 user = new RootUser();
             }
             else {
-                user = new StandardUser();
+                user = new KnownUser();
             }
 
             System.out.println("Login success!");

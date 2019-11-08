@@ -7,8 +7,6 @@ public abstract class ServerCommand {
     protected NewServer reference;
 
     public abstract void call();
-
-
     public void setReference(NewServer ref) { reference = ref; }
 
     public ServerCommand select(String command) {

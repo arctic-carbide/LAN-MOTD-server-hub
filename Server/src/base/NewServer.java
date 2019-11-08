@@ -9,21 +9,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
-import commands.*;
-import roles.RootUser;
-import roles.StandardUser;
+import roles.*;
 import shared.*;
 
 public class NewServer {
-    private static final String OK_MESSAGE = "200 OK";
-    private static final String FAIL_CODE = "401 ";
-    private static final String ROOT_NAME = "root";
-    private static final int MESSAGE_LIMIT = 20;
+    public static final String ROOT_NAME = "root";
+    public static final int MESSAGE_LIMIT = 20;
     public static final int SERVER_PORT = 7243;
 
     private static String messageOfTheDay = null;
@@ -40,7 +33,7 @@ public class NewServer {
     private static BufferedReader is;
     private static PrintStream os;
     private static Socket serviceSocket = null;
-    private static StandardUser user = null;
+    private static UserProfile user = new AnonymousUser();
 
 //    private static final boolean DEBUG = false;
 
@@ -54,7 +47,7 @@ public class NewServer {
     }
 
     public void init() throws Exception {
-        Utility.Display("Initializing internal server data...");
+        Utility.display("Initializing internal server data...");
 
         String msgsFilename = "messages.txt"; // "base.Server/resources/messages.txt";
         String usersFilename = "users.txt"; // "base.Server/resources/users.txt";
@@ -62,13 +55,23 @@ public class NewServer {
         InitUsersFromFile(usersFilename);
         QueueMessagesFromFile(msgsFilename);
         OpenMessagesFile(msgsFilename);
-        ValidateMessages();
+        // ValidateMessages();
 
-        Utility.Display("base.Server initialized!");
+        Utility.display("base.Server initialized!");
     }
 
+    public void setMOTD(String motd) { messageOfTheDay = motd;}
+    public String getMOTD() { return messageOfTheDay; }
+    public PrintStream getOS() { return os; }
+    public CircularQueue<String> getMessageQueue() { return messages; }
+    public boolean isUserLoggedIn() { return user instanceof KnownUser; }
+    public BufferedReader getIS() { return is; }
+    public BufferedWriter getOfstream() { return ofstream; }
+    public UserProfile getUser() { return user; }
+    public void setUser(UserProfile profile) { user = profile; }
+
     private static void InitUsersFromFile(String filename) throws Exception {
-        Utility.Display("Try to get users and passwords from provided file...");
+        Utility.display("Try to get users and passwords from provided file...");
 
         URL usersURL = NewServer.class.getResource(filename);
         users = new HashMap<>();
@@ -79,11 +82,11 @@ public class NewServer {
             users.put(partition[0], partition[1]);
         }
 
-        Utility.Display("Users registered!");
+        Utility.display("Users registered!");
     }
 
     private static void QueueMessagesFromFile(String filename) throws Exception {
-        Utility.Display("Try to queue stored messages to internal message queue...");
+        Utility.display("Try to queue stored messages to internal message queue...");
 
         URL msgs = NewServer.class.getResource(filename);
         List<String> fileMessages = null;
@@ -93,35 +96,19 @@ public class NewServer {
             messages.add(m); // this is a circular queue: elements removed from the front go to the back of the queue
         }
 
-        Utility.Display("Messages queued!");
+        Utility.display("Messages queued!");
     }
 
     private static void OpenMessagesFile(String filename) throws Exception {
-        Utility.Display("Try to open messages file for writing...");
+        Utility.display("Try to open messages file for writing...");
 
         FileWriter temp = new FileWriter(filename, true);
         ofstream = new BufferedWriter(temp);
 
-        Utility.Display("File is ready to be written to!");
+        Utility.display("File is ready to be written to!");
     }
 
-    private static void ValidateMessages() {
-        Utility.Display("Confirming messages are queued...");
-
-        if (DEBUG) {
-            // validate to make sure the messages appear in the structure
-            for (String m : messages) {
-                if (m != null) {
-                    System.out.println(m);
-                }
-            }
-        }
-
-        Utility.Display("Validation complete!");
-    }
-
-
-    public static void start()  {
+    public void start()  {
 
         openServerSocket();
 
@@ -154,7 +141,7 @@ public class NewServer {
 
     }
 
-	private static void interpretClientInput() throws Exception {
+	private void interpretClientInput() throws Exception {
         // As long as we receive data, echo that data back to the client.
         String command;
 
@@ -163,7 +150,8 @@ public class NewServer {
             partitionedInput = partitionClientInput(line);
             command = partitionedInput.poll();
 
-            performClientCommand(command);
+            user.call(command);
+            // performClientCommand(command);
         }
 
     }
@@ -175,26 +163,21 @@ public class NewServer {
         return new LinkedList<>(l);
     }
 
-    private void performClientCommand(String clientCommand) {
-        command = command.select(clientCommand);
-        command.call();
-    }
-
 	private static void Quit() {
-        Utility.Display("Starting QUIT procedure...");
+        Utility.display("Starting QUIT procedure...");
 
-        os.println(OK_MESSAGE);
+        os.println(ServerResponseCode.OK);
         Logout(); // logout the user when they leave
 
-        Utility.Display("Client disconnected from server!");
+        Utility.display("Client disconnected from server!");
     }
 
 	private static void Shutdown() throws Exception {
-        Utility.Display("Starting SHUTDOWN procedure...");
+        Utility.display("Starting SHUTDOWN procedure...");
 
-        if (UserIsRoot()) {
-            os.println(OK_MESSAGE);
-            Utility.Display("Shutting down server...");
+        if (isRootUser()) {
+            os.println(ServerResponseCode.OK);
+            Utility.display("Shutting down server...");
             // System.out.println("Shutting down server...");
 
             is.close();
@@ -203,8 +186,8 @@ public class NewServer {
             System.exit(0);
         }
         else {
-            Utility.Display("SHUTDOWN procedure aborted!");
-            os.println(FAIL_CODE + "You are not currently logged in, log in first");
+            Utility.display("SHUTDOWN procedure aborted!");
+            os.println(ServerResponseCode.FAIL + "You are not currently logged in, log in first");
         }
     }
 
@@ -228,8 +211,8 @@ public class NewServer {
         // rootUser = false;
         System.out.println("Logging user out...");
 
-        user = null;
-        os.println(OK_MESSAGE);
+        user = ((AnonymousUser) user);
+        os.println(ServerResponseCode.OK);
 
         System.out.println("Logout success!");
     }
@@ -239,7 +222,7 @@ public class NewServer {
 
         System.out.println("Checking arguments...");
         if (partitionedInput.size() < 2) {
-            os.println(FAIL_CODE + "Usage: LOGIN <username> <password>");
+            os.println(ServerResponseCode.FAIL + "Usage: LOGIN <username> <password>");
             return;
         }
 
@@ -255,91 +238,66 @@ public class NewServer {
                 user = new RootUser();
             }
             else {
-                user = new StandardUser();
+                user = new KnownUser();
             }
 
             System.out.println("Login success!");
-            os.println(OK_MESSAGE);
+            os.println(ServerResponseCode.OK);
         }
         else {
             System.out.println("Login fail!");
-            os.println(FAIL_CODE + "UserID or Password");
+            os.println(ServerResponseCode.FAIL + "UserID or Password");
         }
     }
 
-    private static boolean UserIsLoggedIn() {
-        Utility.Display("Checking if client is logged in...");
-        return user != null;
-    }
+//    private static boolean UserIsLoggedIn() {
+//        Utility.display("Checking if client is logged in...");
+//        return user != null;
+//    }
 
-    private static boolean UserIsRoot() {
-        Utility.Display("Checking if client user is root user...");
+    public static boolean isRootUser() {
+        Utility.display("Checking if client user is root user...");
         return user instanceof RootUser;
     }
 
-	private static void StoreMessage() throws Exception {
-        String message = null;
-
-        Utility.Display("Starting MSGSTORE procedure...");
-        // System.out.println("Starting MSGSTORE procedure...");
-
-        // if (!rootUser) {
-        if (!UserIsLoggedIn()) { // nobody is logged in
-            Utility.Display("Procedure MSGSTORE aborted!");
-            os.println(FAIL_CODE + "You are not currently logged in, log in first");
-            return;
-        }
-        else {
-            os.println(OK_MESSAGE);
-        }
-
-        Utility.Display("Waiting for user message...");
-        message = is.readLine();
-
-        // try to add the message to the server
-        // the queue will check to see if it can fit the message in its internal structure
-        // if it can, it will add it and return true
-        // else, if doesn't and returns false
-
-        Utility.Display("Try to store user message into server...");
-        // System.out.println("Try to store user message into server...");
-        if (messages.offer(message)) {
-            ofstream.write(message); // append that message to the external file
-            ofstream.newLine();
-            // ofstream.flush();
-            Utility.Display("Procedure MSGSTORE complete!");
-            os.println(OK_MESSAGE); // confirm that the message was added
-            // System.out.println("Procedure success!");
-        }
-        else {
-            os.println(FAIL_CODE + "Too Many Messages in Memory: " + MESSAGE_LIMIT); // confirm that adding the message failed
-            Utility.Display("Procedure MSGSTORE failed!");
-            // System.out.println("Procedure failed!");
-        }
-    }
-
-    private static void GetMessage() {
-        Utility.Display("Starting MSGGET procedure...");
-
-        os.println(OK_MESSAGE);
-        messageOfTheDay = messages.next(); // cycle through to the next message
-        os.println(messageOfTheDay);
-
-        Utility.Display("Procedure success!");
-    }
-
-//	public static void main(String[] args)  {
-//        System.out.println("Starting server...");
+//	private static void StoreMessage() throws Exception {
+//        String message = null;
 //
-//        try {
-//            NewServer.init();
-//            NewServer.run();
+//        Utility.display("Starting MSGSTORE procedure...");
+//        // System.out.println("Starting MSGSTORE procedure...");
+//
+//        // if (!rootUser) {
+//        if (!UserIsLoggedIn()) { // nobody is logged in
+//            Utility.display("Procedure MSGSTORE aborted!");
+//            os.println(ServerResponseCode.FAIL + "You are not currently logged in, log in first");
+//            return;
 //        }
-//        catch (Exception e) {
-//            System.err.println(e.getMessage());
-//            System.exit(-1);
+//        else {
+//            os.println(ServerResponseCode.OK);
 //        }
 //
-//        System.out.println("base.Server terminating...");
-//	}
+//        Utility.display("Waiting for user message...");
+//        message = is.readLine();
+//
+//        // try to add the message to the server
+//        // the queue will check to see if it can fit the message in its internal structure
+//        // if it can, it will add it and return true
+//        // else, if doesn't and returns false
+//
+//        Utility.display("Try to store user message into server...");
+//        // System.out.println("Try to store user message into server...");
+//        if (messages.offer(message)) {
+//            ofstream.write(message); // append that message to the external file
+//            ofstream.newLine();
+//            // ofstream.flush();
+//            Utility.display("Procedure MSGSTORE complete!");
+//            os.println(ServerResponseCode.OK); // confirm that the message was added
+//            // System.out.println("Procedure success!");
+//        }
+//        else {
+//            os.println(ServerResponseCode.FAIL + "Too Many Messages in Memory: " + MESSAGE_LIMIT); // confirm that adding the message failed
+//            Utility.display("Procedure MSGSTORE failed!");
+//            // System.out.println("Procedure failed!");
+//        }
+//    }
 }

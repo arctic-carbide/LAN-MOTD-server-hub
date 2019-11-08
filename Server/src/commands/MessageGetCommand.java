@@ -1,21 +1,22 @@
 package commands;
 
+import base.ServerResponseCode;
 import shared.*;
 
 public class MessageGetCommand extends ServerCommand {
 
     public void call() {
-
+        forwardMessageToClient();
     }
 
-    private void GetMessage() {
-        Utility.Display("Starting MSGGET procedure...");
+    private void forwardMessageToClient() {
+        Utility.display("Starting MSGGET procedure...");
 
-        os.println(OK_MESSAGE);
-        messageOfTheDay = messages.next(); // cycle through to the next message
-        os.println(messageOfTheDay);
+        reference.getOS().println(ServerResponseCode.OK);
+        reference.setMOTD(reference.getMessageQueue().next()); // cycle through to the next message
+        reference.getOS().println(reference.getMOTD());
 
-        Display("Procedure success!");
+        Utility.display("Procedure success!");
     }
 
 }

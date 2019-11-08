@@ -1,18 +1,13 @@
 package roles;
 
-import commands.ServerCommand;
-
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
-public class AnonymousUser {
+public class AnonymousUser extends UserProfile {
 
 
     protected static final HashSet<String> whitelist = new HashSet<>();
-    protected ServerCommand command = ServerCommand.DEFAULT_COMMAND;
 
-    public void execute(String command) {
+    public void call(String command) {
         this.command = this.command.select(command);
 
 
