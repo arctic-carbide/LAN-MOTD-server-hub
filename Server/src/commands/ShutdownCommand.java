@@ -1,10 +1,10 @@
 package commands;
 
-
-public class WhoCommand extends ServerCommand {
+public class ShutdownCommand extends ServerCommand {
 
     public void call() {
 
     }
+
 
 }

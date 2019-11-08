@@ -1,6 +1,6 @@
 package commands;
 
-public class QuitCommand implements Command {
+public class QuitCommand extends ServerCommand {
 
     public void call() {
 

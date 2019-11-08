@@ -2,18 +2,24 @@ package base;/*
  * base.Server.java
  */
 
-import roles.RootUser;
-import roles.StandardUser;
-
 import java.io.*;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
-public class Server {
+import commands.*;
+import roles.RootUser;
+import roles.StandardUser;
+import shared.*;
+
+public class NewServer {
     private static final String OK_MESSAGE = "200 OK";
     private static final String FAIL_CODE = "401 ";
     private static final String ROOT_NAME = "root";
@@ -36,16 +42,19 @@ public class Server {
     private static Socket serviceSocket = null;
     private static StandardUser user = null;
 
-    private static final boolean DEBUG = false;
+//    private static final boolean DEBUG = false;
 
-    private static void Display(String msg) {
-        if (DEBUG) {
-            System.out.println(msg);
+    public NewServer() {
+        try {
+            init();
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
         }
     }
 
-    public static void init() throws Exception {
-        Display("Initializing internal server data...");
+    public void init() throws Exception {
+        Utility.Display("Initializing internal server data...");
 
         String msgsFilename = "messages.txt"; // "base.Server/resources/messages.txt";
         String usersFilename = "users.txt"; // "base.Server/resources/users.txt";
@@ -55,13 +64,13 @@ public class Server {
         OpenMessagesFile(msgsFilename);
         ValidateMessages();
 
-        Display("base.Server initialized!");
+        Utility.Display("base.Server initialized!");
     }
 
     private static void InitUsersFromFile(String filename) throws Exception {
-        Display("Try to get users and passwords from provided file...");
+        Utility.Display("Try to get users and passwords from provided file...");
 
-        URL usersURL = Server.class.getResource(filename);
+        URL usersURL = NewServer.class.getResource(filename);
         users = new HashMap<>();
 
         usersAndPasswords = Files.readAllLines(Paths.get(usersURL.toURI()), StandardCharsets.UTF_8);
@@ -70,13 +79,13 @@ public class Server {
             users.put(partition[0], partition[1]);
         }
 
-        Display("Users registered!");
+        Utility.Display("Users registered!");
     }
 
     private static void QueueMessagesFromFile(String filename) throws Exception {
-        Display("Try to queue stored messages to internal message queue...");
+        Utility.Display("Try to queue stored messages to internal message queue...");
 
-        URL msgs = Server.class.getResource(filename);
+        URL msgs = NewServer.class.getResource(filename);
         List<String> fileMessages = null;
 
         fileMessages = Files.readAllLines(Paths.get(msgs.toURI()), StandardCharsets.UTF_8);
@@ -84,20 +93,20 @@ public class Server {
             messages.add(m); // this is a circular queue: elements removed from the front go to the back of the queue
         }
 
-        Display("Messages queued!");
+        Utility.Display("Messages queued!");
     }
 
     private static void OpenMessagesFile(String filename) throws Exception {
-        Display("Try to open messages file for writing...");
+        Utility.Display("Try to open messages file for writing...");
 
         FileWriter temp = new FileWriter(filename, true);
         ofstream = new BufferedWriter(temp);
 
-        Display("File is ready to be written to!");
+        Utility.Display("File is ready to be written to!");
     }
 
     private static void ValidateMessages() {
-        Display("Confirming messages are queued...");
+        Utility.Display("Confirming messages are queued...");
 
         if (DEBUG) {
             // validate to make sure the messages appear in the structure
@@ -108,14 +117,13 @@ public class Server {
             }
         }
 
-        Display("Validation complete!");
+        Utility.Display("Validation complete!");
     }
 
 
-    private static void run() throws Exception
-	{
+    public static void start()  {
 
-		openServerSocket();
+        openServerSocket();
 
 		// Create a socket object from the ServerSocket to listen and accept connections.
 		// Open input and output streams
@@ -132,6 +140,9 @@ public class Server {
 			{
 				System.out.println(e);
 			}
+			catch (Exception e) {
+			    System.err.println(e.getMessage());
+            }
 		}
 	}
 
@@ -164,49 +175,26 @@ public class Server {
         return new LinkedList<>(l);
     }
 
-    private static void performClientCommand(String command) throws Exception {
-
-        switch (command) { // first element is the command
-            case "MSGGET":
-                GetMessage();
-                break;
-            case "MSGSTORE":
-                StoreMessage();
-                break;
-            case "QUIT":
-                Quit();
-                break;
-            case "LOGIN":
-                Login();
-                break;
-            case "LOGOUT":
-                Logout();
-                break;
-            case "SHUTDOWN":
-                Shutdown();
-                break;
-            default:
-                os.println(FAIL_CODE + "Command not recognized! Please try again.");
-                break;
-        }
-
+    private void performClientCommand(String clientCommand) {
+        command = command.select(clientCommand);
+        command.call();
     }
 
 	private static void Quit() {
-        Display("Starting QUIT procedure...");
+        Utility.Display("Starting QUIT procedure...");
 
         os.println(OK_MESSAGE);
         Logout(); // logout the user when they leave
 
-        Display("Client disconnected from server!");
+        Utility.Display("Client disconnected from server!");
     }
 
 	private static void Shutdown() throws Exception {
-        Display("Starting SHUTDOWN procedure...");
+        Utility.Display("Starting SHUTDOWN procedure...");
 
         if (UserIsRoot()) {
             os.println(OK_MESSAGE);
-            Display("Shutting down server...");
+            Utility.Display("Shutting down server...");
             // System.out.println("Shutting down server...");
 
             is.close();
@@ -215,7 +203,7 @@ public class Server {
             System.exit(0);
         }
         else {
-            Display("SHUTDOWN procedure aborted!");
+            Utility.Display("SHUTDOWN procedure aborted!");
             os.println(FAIL_CODE + "You are not currently logged in, log in first");
         }
     }
@@ -280,24 +268,24 @@ public class Server {
     }
 
     private static boolean UserIsLoggedIn() {
-        Display("Checking if client is logged in...");
+        Utility.Display("Checking if client is logged in...");
         return user != null;
     }
 
     private static boolean UserIsRoot() {
-        Display("Checking if client user is root user...");
+        Utility.Display("Checking if client user is root user...");
         return user instanceof RootUser;
     }
 
 	private static void StoreMessage() throws Exception {
         String message = null;
 
-        Display("Starting MSGSTORE procedure...");
+        Utility.Display("Starting MSGSTORE procedure...");
         // System.out.println("Starting MSGSTORE procedure...");
 
         // if (!rootUser) {
         if (!UserIsLoggedIn()) { // nobody is logged in
-            Display("Procedure MSGSTORE aborted!");
+            Utility.Display("Procedure MSGSTORE aborted!");
             os.println(FAIL_CODE + "You are not currently logged in, log in first");
             return;
         }
@@ -305,7 +293,7 @@ public class Server {
             os.println(OK_MESSAGE);
         }
 
-        Display("Waiting for user message...");
+        Utility.Display("Waiting for user message...");
         message = is.readLine();
 
         // try to add the message to the server
@@ -313,45 +301,45 @@ public class Server {
         // if it can, it will add it and return true
         // else, if doesn't and returns false
 
-        Display("Try to store user message into server...");
+        Utility.Display("Try to store user message into server...");
         // System.out.println("Try to store user message into server...");
         if (messages.offer(message)) {
             ofstream.write(message); // append that message to the external file
             ofstream.newLine();
             // ofstream.flush();
-            Display("Procedure MSGSTORE complete!");
+            Utility.Display("Procedure MSGSTORE complete!");
             os.println(OK_MESSAGE); // confirm that the message was added
             // System.out.println("Procedure success!");
         }
         else {
             os.println(FAIL_CODE + "Too Many Messages in Memory: " + MESSAGE_LIMIT); // confirm that adding the message failed
-            Display("Procedure MSGSTORE failed!");
+            Utility.Display("Procedure MSGSTORE failed!");
             // System.out.println("Procedure failed!");
         }
     }
 
     private static void GetMessage() {
-        Display("Starting MSGGET procedure...");
+        Utility.Display("Starting MSGGET procedure...");
 
         os.println(OK_MESSAGE);
         messageOfTheDay = messages.next(); // cycle through to the next message
         os.println(messageOfTheDay);
 
-        Display("Procedure success!");
+        Utility.Display("Procedure success!");
     }
 
-	public static void main(String[] args)  {
-        System.out.println("Starting server...");
-
-        try {
-            Server.init();
-            Server.run();
-        }
-        catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.exit(-1);
-        }
-
-        System.out.println("base.Server terminating...");
-	}
+//	public static void main(String[] args)  {
+//        System.out.println("Starting server...");
+//
+//        try {
+//            NewServer.init();
+//            NewServer.run();
+//        }
+//        catch (Exception e) {
+//            System.err.println(e.getMessage());
+//            System.exit(-1);
+//        }
+//
+//        System.out.println("base.Server terminating...");
+//	}
 }

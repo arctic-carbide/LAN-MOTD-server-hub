@@ -1,5 +1,5 @@
-/* 
- * Client.java
+package base;/*
+ * base.Client.java
  */
 
 import java.io.*;
@@ -37,7 +37,7 @@ public class Client
 		// Try to open input and output streams
 		try
 		{
-			Display("Initializing Client...");
+			Display("Initializing base.Client...");
 
 			clientSocket = new Socket(args[0], SERVER_PORT);
 			os = new PrintStream(clientSocket.getOutputStream());
@@ -45,7 +45,7 @@ public class Client
 					new InputStreamReader(clientSocket.getInputStream()));
 			stdInput = new BufferedReader(new InputStreamReader(System.in));
 
-			Display("Client initialized!");
+			Display("base.Client initialized!");
 		}
 		catch (UnknownHostException e)
 		{
@@ -113,7 +113,7 @@ public class Client
 
     public static void main(String[] args) 
     {
-    	System.out.println("Client started!");
+    	System.out.println("base.Client started!");
 
     	try {
     		test(args);
@@ -123,6 +123,6 @@ public class Client
     		System.exit(-1);
 		}
 
-    	System.out.println("Client terminated!");
+    	System.out.println("base.Client terminated!");
     }
 }

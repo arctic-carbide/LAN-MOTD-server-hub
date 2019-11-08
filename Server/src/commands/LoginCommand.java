@@ -1,6 +1,6 @@
 package commands;
 
-public class LoginCommand implements Command {
+public class LoginCommand extends ServerCommand {
     public void call() {
 
     }

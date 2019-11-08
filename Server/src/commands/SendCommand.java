@@ -1,7 +1,6 @@
 package commands;
-import base.Server;
 
-public class SendCommand implements Command {
+public class SendCommand extends ServerCommand {
 
     public void call() {
 

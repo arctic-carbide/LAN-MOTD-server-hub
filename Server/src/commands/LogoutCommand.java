@@ -1,6 +1,6 @@
 package commands;
 
-public class LogoutCommand implements Command {
+public class LogoutCommand extends ServerCommand {
 
     public void call() {
 

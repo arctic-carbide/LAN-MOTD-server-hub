@@ -1,6 +1,6 @@
 package commands;
 
-public class MessageStoreCommand implements Command {
+public class MessageStoreCommand extends ServerCommand {
 
     public void call() {
 
