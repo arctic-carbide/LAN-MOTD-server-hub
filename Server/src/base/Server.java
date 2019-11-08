@@ -108,6 +108,7 @@ public class Server {
         Display("Validation complete!");
     }
 
+
     private static void run() throws Exception
 	{
 
