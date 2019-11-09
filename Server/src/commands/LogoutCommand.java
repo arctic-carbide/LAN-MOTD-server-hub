@@ -4,7 +4,7 @@ import base.ServerResponseCode;
 import roles.AnonymousUser;
 import roles.UserProfile;
 
-public class LogoutCommand extends KnownUserCommand {
+public class LogoutCommand extends BasicUserCommand {
 
     public void call() {
         logUserOutOfServer();

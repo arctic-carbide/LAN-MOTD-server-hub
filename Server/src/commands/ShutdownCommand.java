@@ -7,9 +7,7 @@ public class ShutdownCommand extends ServerCommand {
     }
 
     private void shutdownServer() {
-        // TODO: FINISH SHUTDOWN COMMAND
-        // kill all running threads
-        // end server manager
+        System.exit(0); // kills everything
     }
 
 }

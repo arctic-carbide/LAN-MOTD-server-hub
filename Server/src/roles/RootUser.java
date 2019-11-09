@@ -2,10 +2,11 @@ package roles;
 
 import commands.ServerCommand;
 
-public class RootUser extends KnownUser {
+public class RootUser extends BasicUser {
+    public static final String ROOT_NAME = "root";
 
-    public RootUser(String uname) {
-        super(uname);
+    public RootUser() {
+        super(ROOT_NAME);
     }
 
     @Override

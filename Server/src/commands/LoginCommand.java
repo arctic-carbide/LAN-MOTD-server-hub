@@ -35,38 +35,40 @@ public class LoginCommand extends AnonymousUserCommand {
         }
     }
 
-    private void validateUser(String password) throws Server401Exception {
+    private void validateUser() throws Server401Exception {
         if (password == null) {
             throw new InvalidLoginArgumentsException();
         }
     }
 
     private void determineUserType() {
-
+        System.out.println("Determining user type...");
+        if (username.equals(RootUser.ROOT_NAME)) {
+            server.setUser(new RootUser());
+        }
+        else {
+            server.setUser(new BasicUser(username));
+        }
     }
 
-    private void logClientIntoServer() throws Server401Exception {
-        System.out.println("Starting LOGIN procedure...");
-
+    private void validatePassword() {
         System.out.println("Acquiring arguments...");
         String requiredPassword = server.getUsers().get(username); // retrieves the password value associated with user
 
         System.out.println("Comparing supplied password to registered user password...");
         if (password.equals(requiredPassword)) {
-            System.out.println("Determining user type...");
-            if (username.equals(ROOT_NAME)) {
-                user = new RootUser();
-            }
-            else {
-                user = new KnownUser(username);
-            }
-
-            System.out.println("Login success!");
-            os.println(ServerResponseCode.OK);
+            determineUserType();
         }
         else {
             System.out.println("Login fail!");
-            os.println(ServerResponseCode.FAIL + "UserID or Password");
+            throw new InvalidLoginArgumentsException();
+            // server.getOS().println(ServerResponseCode.FAIL + "UserID or Password");
         }
+    }
+
+    private void logClientIntoServer() throws Server401Exception {
+        validateUser();
+        validatePassword();
+        determineUserType();
     }
 }

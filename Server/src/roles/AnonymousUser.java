@@ -1,18 +1,15 @@
 package roles;
 
-import base.Server;
 import commands.AnonymousUserCommand;
-import commands.MessageGetCommand;
 import commands.ServerCommand;
 import exceptions.Server401Exception;
 import exceptions.UnauthorizedCommandException;
 
-import java.util.HashSet;
-
 public class AnonymousUser extends UserProfile {
 
+    @Override
     public void call(String commandLine) throws Server401Exception {
-        ServerCommand command = command.select(commandLine);
+        ServerCommand command = ServerCommand.select(commandLine);
 
         validateCommand(command);
         command.call();

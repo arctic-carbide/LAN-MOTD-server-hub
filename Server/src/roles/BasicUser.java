@@ -1,12 +1,12 @@
 package roles;
 
-import commands.KnownUserCommand;
+import commands.BasicUserCommand;
 import commands.ServerCommand;
 
-public class KnownUser extends AnonymousUser {
+public class BasicUser extends AnonymousUser {
     private String username;
 
-    public KnownUser(String username) {
+    public BasicUser(String username) {
         this.username = username;
     }
 
@@ -14,6 +14,6 @@ public class KnownUser extends AnonymousUser {
 
     @Override
     protected boolean hasCommandPermission(ServerCommand command) {
-        return command instanceof KnownUserCommand;
+        return command instanceof BasicUserCommand;
     }
 }

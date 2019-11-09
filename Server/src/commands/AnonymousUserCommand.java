@@ -1,6 +1,4 @@
 package commands;
 
-import roles.KnownUser;
-
-public abstract class AnonymousUserCommand extends KnownUserCommand {
+public abstract class AnonymousUserCommand extends BasicUserCommand {
 }

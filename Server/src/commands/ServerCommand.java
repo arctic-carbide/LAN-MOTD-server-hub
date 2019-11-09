@@ -11,7 +11,7 @@ public abstract class ServerCommand {
     public abstract void call();
     public void setServer(ServerInstance ref) { server = ref; }
 
-    public ServerCommand select(String command) throws Server401Exception {
+    public static ServerCommand select(String command) throws Server401Exception {
         String[] parts = command.split(" ");
 
         switch (parts[0]) { // first element is the command
