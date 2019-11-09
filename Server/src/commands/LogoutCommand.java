@@ -4,7 +4,7 @@ import base.ServerResponseCode;
 import roles.AnonymousUser;
 import roles.UserProfile;
 
-public class LogoutCommand extends ServerCommand {
+public class LogoutCommand extends KnownUserCommand {
 
     public void call() {
         logUserOutOfServer();
@@ -12,11 +12,11 @@ public class LogoutCommand extends ServerCommand {
 
     private void logUserOutOfServer() {
         // rootUser = false;
-        UserProfile user = reference.getUser();
+        UserProfile user = server.getUser();
         System.out.println("Logging user out...");
 
-        reference.setUser(new AnonymousUser());
-        reference.getOS().println(ServerResponseCode.OK);
+        server.setUser(new AnonymousUser());
+        server.getOS().println(ServerResponseCode.OK);
 
         System.out.println("Logout success!");
     }

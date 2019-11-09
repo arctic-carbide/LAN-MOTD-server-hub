@@ -3,7 +3,7 @@ package commands;
 import base.ServerResponseCode;
 import shared.*;
 
-public class MessageGetCommand extends ServerCommand {
+public class MessageGetCommand extends AnonymousUserCommand {
 
     public void call() {
         forwardMessageToClient();
@@ -12,9 +12,9 @@ public class MessageGetCommand extends ServerCommand {
     private void forwardMessageToClient() {
         Utility.display("Starting MSGGET procedure...");
 
-        reference.getOS().println(ServerResponseCode.OK);
-        reference.setMOTD(reference.getMessageQueue().next()); // cycle through to the next message
-        reference.getOS().println(reference.getMOTD());
+        server.getOS().println(ServerResponseCode.OK);
+        server.setMOTD(server.getMessageQueue().next()); // cycle through to the next message
+        server.getOS().println(server.getMOTD());
 
         Utility.display("Procedure success!");
     }

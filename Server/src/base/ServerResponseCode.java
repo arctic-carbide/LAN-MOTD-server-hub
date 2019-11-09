@@ -9,4 +9,6 @@ public enum ServerResponseCode {
     ServerResponseCode(String str) {
         VALUE = str;
     }
+
+    public String getVALUE() { return VALUE; }
 }

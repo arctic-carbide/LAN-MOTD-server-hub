@@ -1,4 +1,4 @@
-package base;
+package shared;
 
 import java.util.concurrent.LinkedBlockingQueue;
 

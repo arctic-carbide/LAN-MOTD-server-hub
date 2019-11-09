@@ -4,6 +4,7 @@ package base;/*
 
 import roles.RootUser;
 import roles.KnownUser;
+import shared.CircularQueue;
 
 import java.io.*;
 import java.net.*;

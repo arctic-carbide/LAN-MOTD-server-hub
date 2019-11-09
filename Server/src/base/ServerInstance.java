@@ -14,18 +14,15 @@ import java.util.*;
 import roles.*;
 import shared.*;
 
-public class NewServer {
+public class ServerInstance implements Runnable {
     public static final String ROOT_NAME = "root";
     public static final int MESSAGE_LIMIT = 20;
     public static final int SERVER_PORT = 7243;
 
     private static String messageOfTheDay = null;
-    private static boolean test = false;
     private static CircularQueue<String> messages = new CircularQueue<>(MESSAGE_LIMIT);
     private static BufferedWriter ofstream;
-    private static boolean rootUser = false;
     private static List<String> usersAndPasswords;
-    private static LinkedList<String> partitionedInput;
     private static HashMap<String, String> users;
 
     private static ServerSocket myServerice = null;
@@ -33,17 +30,22 @@ public class NewServer {
     private static BufferedReader is;
     private static PrintStream os;
     private static Socket serviceSocket = null;
-    private static UserProfile user = new AnonymousUser();
+    private UserProfile user = new AnonymousUser();
 
 //    private static final boolean DEBUG = false;
 
-    public NewServer() {
+    public ServerInstance() {
         try {
             init();
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
         }
+    }
+
+    @Override
+    public void run() {
+
     }
 
     public void init() throws Exception {
@@ -69,11 +71,12 @@ public class NewServer {
     public BufferedWriter getOfstream() { return ofstream; }
     public UserProfile getUser() { return user; }
     public void setUser(UserProfile profile) { user = profile; }
+    public HashMap<String, String> getUsers() { return users; }
 
     private static void InitUsersFromFile(String filename) throws Exception {
         Utility.display("Try to get users and passwords from provided file...");
 
-        URL usersURL = NewServer.class.getResource(filename);
+        URL usersURL = ServerInstance.class.getResource(filename);
         users = new HashMap<>();
 
         usersAndPasswords = Files.readAllLines(Paths.get(usersURL.toURI()), StandardCharsets.UTF_8);
@@ -88,7 +91,7 @@ public class NewServer {
     private static void QueueMessagesFromFile(String filename) throws Exception {
         Utility.display("Try to queue stored messages to internal message queue...");
 
-        URL msgs = NewServer.class.getResource(filename);
+        URL msgs = ServerInstance.class.getResource(filename);
         List<String> fileMessages = null;
 
         fileMessages = Files.readAllLines(Paths.get(msgs.toURI()), StandardCharsets.UTF_8);
@@ -115,8 +118,8 @@ public class NewServer {
 		// Create a socket object from the ServerSocket to listen and accept connections.
 		// Open input and output streams
 
-		while (true) // always run until an exception occurs
-		{
+//		while (true) // always run until an exception occurs
+//		{
 			try 
 			{
 			    acquireClientStreams();
@@ -130,7 +133,7 @@ public class NewServer {
 			catch (Exception e) {
 			    System.err.println(e.getMessage());
             }
-		}
+//		}
 	}
 
 	private static void endConnection() throws Exception {
@@ -143,15 +146,10 @@ public class NewServer {
 
 	private void interpretClientInput() throws Exception {
         // As long as we receive data, echo that data back to the client.
-        String command;
 
         while ((line = is.readLine()) != null)
         {
-            partitionedInput = partitionClientInput(line);
-            command = partitionedInput.poll();
-
-            user.call(command);
-            // performClientCommand(command);
+            user.call(line);
         }
 
     }
