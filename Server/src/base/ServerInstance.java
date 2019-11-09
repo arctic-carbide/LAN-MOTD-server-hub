@@ -3,15 +3,12 @@ package base;/*
  */
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import exceptions.InvalidCommandException;
 import exceptions.Server401Exception;
 import roles.*;
 import shared.*;
@@ -25,32 +22,40 @@ public class ServerInstance implements Runnable {
     private static List<String> usersAndPasswords;
     private static HashMap<String, String> users;
 
-    private static ServerSocket myServerice = null;
-    private static String line;
-    private static BufferedReader is;
-    private static PrintStream os;
-    private static Socket serviceSocket = null;
+    private ServerMemberData smd;
+//    private static ServerSocket myServerice = null;
+//    private static Socket serviceSocket = null;
+//    private static BufferedReader is;
+//    private static PrintStream os;
 
     private UserProfile user = new AnonymousUser();
     private volatile boolean terminate = false;
 
+    public ServerInstance(ServerMemberData smd) {
+        this.smd = new ServerMemberData(smd);
+    }
+
+
     public ServerInstance() {
-        try {
-            init();
-        }
-        catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+        // to avoid deadlock, init outside of class with the manager
+
+//        try {
+//
+//            init();
+//        }
+//        catch (Exception e) {
+//            System.err.println(e.getMessage());
+//        }
     }
 
     @Override
     public void run() {
         try {
-            // Create a socket object from the ServerSocket to listen and accept connections.
-            openServerSocket();
-
-            // Open input and output streams
-            acquireClientStreams();
+//            // Create a socket object from the ServerSocket to listen and accept connections.
+//            openServerSocket();
+//
+//            // Open input and output streams
+//            acquireClientStreams();
             interpretClientInput(); // loops until client disconnects
             endConnection();
         }
@@ -59,7 +64,7 @@ public class ServerInstance implements Runnable {
         }
     }
 
-    public void init() throws Exception {
+    public static void init() throws Exception {
         Utility.display("Initializing internal server data...");
 
         String msgsFilename = "messages.txt"; // "base.Server/resources/messages.txt";
@@ -67,7 +72,7 @@ public class ServerInstance implements Runnable {
 
         InitUsersFromFile(usersFilename);
         QueueMessagesFromFile(msgsFilename);
-        OpenMessagesFile(msgsFilename);
+        openMessagesFile(msgsFilename);
 
         Utility.display("base.Server initialized!");
     }
@@ -75,11 +80,11 @@ public class ServerInstance implements Runnable {
     public void setMOTD(String motd) { messageOfTheDay = motd;}
     public String getMOTD() { return messageOfTheDay; }
 
-    public PrintStream getOS() { return os; }
+    public PrintStream getOS() { return smd.ostream; }
     public CircularQueue<String> getMessageQueue() { return messages; }
     public boolean isUserLoggedIn() { return user instanceof BasicUser; }
-    public BufferedReader getIS() { return is; }
-    public BufferedWriter getOfstream() { return ofstream; }
+    public BufferedReader getIS() { return smd.istream; }
+    public BufferedWriter getOutputFileStream() { return ofstream; }
     public UserProfile getUser() { return user; }
     public void setUser(UserProfile profile) { user = profile; }
     public HashMap<String, String> getUsers() { return users; }
@@ -104,17 +109,16 @@ public class ServerInstance implements Runnable {
         Utility.display("Try to queue stored messages to internal message queue...");
 
         URL msgs = ServerInstance.class.getResource(filename);
-        List<String> fileMessages = null;
+        List<String> fileMessages;
 
         fileMessages = Files.readAllLines(Paths.get(msgs.toURI()), StandardCharsets.UTF_8);
-        for (String m : fileMessages) {
-            messages.add(m); // this is a circular queue: elements removed from the front go to the back of the queue
-        }
+        // this is a circular queue: elements removed from the front go to the back of the queue
+        messages.addAll(fileMessages);
 
         Utility.display("Messages queued!");
     }
 
-    private static void OpenMessagesFile(String filename) throws Exception {
+    private static void openMessagesFile(String filename) throws Exception {
         Utility.display("Try to open messages file for writing...");
 
         FileWriter temp = new FileWriter(filename, true);
@@ -123,53 +127,37 @@ public class ServerInstance implements Runnable {
         Utility.display("File is ready to be written to!");
     }
 
-	private static void endConnection() throws Exception {
+	private void endConnection() throws Exception {
         //close input and output stream and socket
-        is.close();
-        os.close();
-        serviceSocket.close();
-
+        smd.istream.close();
+        smd.ostream.close();
+        smd.socket.close();
     }
 
 	private void interpretClientInput() throws Exception {
         // As long as we receive data, echo that data back to the client.
         String userCommand;
-        while ((userCommand = is.readLine()) != null)
+        while (!terminate)
         {
             try {
-                userCommand = is.readLine();
+                userCommand = smd.istream.readLine();
                 user.call(userCommand);
-                os.println(ServerResponseCode.OK);
+                smd.ostream.println(ServerResponseCode.OK);
             }
             catch (Server401Exception e) {
-                os.println(e.getMessage());
+                smd.ostream.println(e.getMessage());
             }
         }
 
     }
 
-//    private static LinkedList<String> partitionClientInput(String command) {
-//        String[] a = command.split(" ");
-//        List<String> l = Arrays.asList(a);
-//
-//        return new LinkedList<>(l);
+//    private static void openServerSocket() throws Exception {
+//        myServerice = new ServerSocket(CommunicationData.SERVER_PORT); // establish a socket to put on the target port
 //    }
-
-//	private static void Quit() {
-//        Utility.display("Starting QUIT procedure...");
 //
-//        os.println(ServerResponseCode.OK);
-//        Logout(); // logout the user when they leave
-//        Utility.display("Client disconnected from server!");
+//    private static void acquireClientStreams() throws Exception {
+//        serviceSocket = myServerice.accept(); //
+//        is = new BufferedReader (new InputStreamReader(serviceSocket.getInputStream()));
+//        os = new PrintStream(serviceSocket.getOutputStream());
 //    }
-
-    private static void openServerSocket() throws Exception {
-        myServerice = new ServerSocket(CommunicationData.SERVER_PORT); // establish a socket to put on the target port
-    }
-
-    private static void acquireClientStreams() throws Exception {
-        serviceSocket = myServerice.accept(); //
-        is = new BufferedReader (new InputStreamReader(serviceSocket.getInputStream()));
-        os = new PrintStream(serviceSocket.getOutputStream());
-    }
 }

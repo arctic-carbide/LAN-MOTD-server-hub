@@ -1,5 +1,6 @@
 package commands;
 
+import base.ServerInstance;
 import base.ServerResponseCode;
 import shared.Utility;
 
@@ -15,7 +16,7 @@ public class MessageStoreCommand extends ServerCommand {
     }
 
     private void storeClientMessage() throws Exception {
-        String message = null;
+        String message;
 
         Utility.display("Starting MSGSTORE procedure...");
         // System.out.println("Starting MSGSTORE procedure...");
@@ -41,15 +42,15 @@ public class MessageStoreCommand extends ServerCommand {
         Utility.display("Try to store user message into server...");
         // System.out.println("Try to store user message into server...");
         if (server.getMessageQueue().offer(message)) {
-            server.getOfstream().write(message); // append that message to the external file
-            server.getOfstream().newLine();
+            server.getOutputFileStream().write(message); // append that message to the external file
+            server.getOutputFileStream().newLine();
             // ofstream.flush();
             Utility.display("Procedure MSGSTORE complete!");
             server.getOS().println(ServerResponseCode.OK); // confirm that the message was added
             // System.out.println("Procedure success!");
         }
         else {
-            server.getOS().println(ServerResponseCode.FAIL + "Too Many Messages in Memory: " + server.MESSAGE_LIMIT); // confirm that adding the message failed
+            server.getOS().println(ServerResponseCode.FAIL + "Too Many Messages in Memory: " + ServerInstance.MESSAGE_LIMIT); // confirm that adding the message failed
             Utility.display("Procedure MSGSTORE failed!");
             // System.out.println("Procedure failed!");
         }
