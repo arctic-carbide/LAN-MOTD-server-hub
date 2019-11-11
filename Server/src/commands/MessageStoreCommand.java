@@ -1,7 +1,7 @@
 package commands;
 
 import base.ServerInstance;
-import base.ServerResponseCode;
+import shared.ServerResponseCode;
 import shared.Utility;
 
 public class MessageStoreCommand extends ServerCommand {
@@ -28,7 +28,7 @@ public class MessageStoreCommand extends ServerCommand {
             return;
         }
         else {
-            server.getOS().println(ServerResponseCode.OK);
+            server.getOS().println(ServerResponseCode.OK.VALUE);
         }
 
         Utility.display("Waiting for user message...");
@@ -46,7 +46,7 @@ public class MessageStoreCommand extends ServerCommand {
             server.getOutputFileStream().newLine();
             // ofstream.flush();
             Utility.display("Procedure MSGSTORE complete!");
-            server.getOS().println(ServerResponseCode.OK); // confirm that the message was added
+            server.getOS().println(ServerResponseCode.OK.VALUE); // confirm that the message was added
             // System.out.println("Procedure success!");
         }
         else {

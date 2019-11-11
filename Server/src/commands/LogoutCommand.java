@@ -1,6 +1,6 @@
 package commands;
 
-import base.ServerResponseCode;
+import shared.ServerResponseCode;
 import roles.AnonymousUser;
 import roles.UserProfile;
 
@@ -15,8 +15,8 @@ public class LogoutCommand extends BasicUserCommand {
         UserProfile user = server.getUser();
         System.out.println("Logging user out...");
 
-        server.setUser(new AnonymousUser());
-        server.getOS().println(ServerResponseCode.OK);
+        server.setUser(new AnonymousUser(server));
+        server.getOS().println(ServerResponseCode.OK.VALUE);
 
         System.out.println("Logout success!");
     }

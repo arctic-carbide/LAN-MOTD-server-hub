@@ -1,6 +1,6 @@
 package commands;
 
-import base.ServerResponseCode;
+import shared.ServerResponseCode;
 import exceptions.Server401Exception;
 import exceptions.InsufficientLoginArguementsException;
 import exceptions.InvalidLoginArgumentsException;
@@ -20,7 +20,7 @@ public class LoginCommand extends AnonymousUserCommand {
     public void call() {
         try {
             logClientIntoServer();
-            server.getOS().println(ServerResponseCode.OK);
+            server.getOS().println(ServerResponseCode.OK.VALUE);
         }
         catch (Server401Exception e) {
             server.getOS().println(e.getMessage());
@@ -44,10 +44,10 @@ public class LoginCommand extends AnonymousUserCommand {
     private void determineUserType() {
         System.out.println("Determining user type...");
         if (username.equals(RootUser.ROOT_NAME)) {
-            server.setUser(new RootUser());
+            server.setUser(new RootUser(server));
         }
         else {
-            server.setUser(new BasicUser(username));
+            server.setUser(new BasicUser(server, username));
         }
     }
 

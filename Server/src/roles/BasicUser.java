@@ -1,12 +1,14 @@
 package roles;
 
+import base.ServerInstance;
 import commands.BasicUserCommand;
 import commands.ServerCommand;
 
 public class BasicUser extends AnonymousUser {
     private String username;
 
-    public BasicUser(String username) {
+    public BasicUser(ServerInstance instance, String username) {
+        super(instance);
         this.username = username;
     }
 

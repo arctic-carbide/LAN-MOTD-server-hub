@@ -1,16 +1,21 @@
 package base;
 
+import com.sun.security.ntlm.Server;
+import shared.Node;
 import shared.ServerMemberData;
 
+import java.net.ServerSocket;
+
 // Allocates threads for each client connection to a server instance
-public class ServerManager  {
+public class ServerManager extends Node {
 
     // SINGLETON BLOCK
     private static ServerManager instance;
-    private ServerMemberData serverData;
+    private ServerSocket serverSocket;
+    // private ServerMemberData serverData;
 
     private ServerManager() throws Exception {
-        serverData = new ServerMemberData();
+        serverSocket = new ServerSocket(SOCKET_PORT);
         ServerInstance.init();
     }
 
@@ -23,15 +28,20 @@ public class ServerManager  {
     }
     // END BLOCK
 
+    private void listen() throws Exception {
+        socket = serverSocket.accept(); // waits and listens for a connection on the socket
+        acquireSocketStreams();
+    }
+
     public void start() {
         ServerInstance currentInstance;
         Thread thread;
 
         while (true) {
             try {
-                serverData.establishConnection();
+                listen();
 
-                currentInstance = new ServerInstance(serverData);
+                currentInstance = new ServerInstance(this);
                 thread = new Thread(currentInstance);
 
                 thread.start();

@@ -1,38 +1,41 @@
 package shared;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.Socket;
 
-public class ClientMemberData {
-    public Socket socket;
-    public BufferedReader istream;
-    public PrintStream ostream;
+public class ClientMemberData extends Node {
 
-    public ClientMemberData() {}
+    public BufferedReader stdInput;
+
+    public ClientMemberData() {
+        init();
+    }
 
     public ClientMemberData(ClientMemberData source) {
-        socket = source.socket;
-        istream = source.istream;
-        ostream = source.ostream;
+        super(source);
+        init();
     }
 
     public ClientMemberData(String IP) throws Exception {
-        socket = new Socket(IP, CommunicationData.SERVER_PORT);
+        establishConnection(IP);
+    }
+
+    public void establishConnection(String IP) throws Exception {
+        socket = new Socket(IP, SOCKET_PORT);
         acquireSocketStreams();
     }
 
-    protected void acquireSocketStreams() throws Exception {
-        istream = adaptStream(socket.getInputStream());
-        ostream = adaptStream(socket.getOutputStream());
+    public boolean isConnected() {
+        boolean a = socket != null;
+        boolean b = socketIStream != null;
+        boolean c = socketOStream != null;
+
+        return a && b && c;
     }
 
-    private BufferedReader adaptStream(InputStream is) {
-        InputStreamReader isr = new InputStreamReader(is);
-        return new BufferedReader(isr);
-    }
-
-    private PrintStream adaptStream(OutputStream os) {
-        return new PrintStream(os);
+    private void init() {
+        stdInput = new BufferedReader(new InputStreamReader(System.in));
     }
 
 }

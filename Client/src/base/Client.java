@@ -3,126 +3,96 @@ package base;/*
  */
 
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 
-public class Client 
-{
-    public static final int SERVER_PORT = 7243;
-    private static final boolean DEBUG = false;
+import actions.UserAction;
+import shared.*;
 
-	// private static BufferedReader stdin = null;
-	private static Socket clientSocket = null;
-	private static PrintStream os = null;
-	private static BufferedReader is = null;
-	private static String userInput = null;
-	private static String serverInput = null;
-	private static BufferedReader stdInput = null;
+public class Client extends Node {
+	private BufferedReader stdInput;
 
-	private static void Display(String msg) {
-		if (DEBUG) {
-			System.out.println(msg);
+	public Client(String IP) throws Exception {
+		establishConnection(IP);
+		init();
+	}
+
+	public void establishConnection(String IP) throws Exception {
+		socket = new Socket(IP, SOCKET_PORT);
+		acquireSocketStreams();
+	}
+
+	public boolean isConnected() {
+		boolean a = socket != null;
+		boolean b = socketIStream != null;
+		boolean c = socketOStream != null;
+
+		return a && b && c;
+	}
+
+	private void init() {
+		stdInput = new BufferedReader(new InputStreamReader(System.in));
+	}
+
+	public String retrieveServerResponse() throws Exception {
+		return socketIStream.readLine();
+	}
+
+	public void sendToServer(String command) {
+		socketOStream.println(command);
+	}
+
+	private boolean isExitCommand(String command) {
+		CommandName exit = CommandName.QUIT;
+		CommandName name = CommandName.valueOf(command);
+
+		if (name.equals(exit)) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
-	private static void test(String[] args) {
+	private void communicateOverSocket() throws Exception {
+		boolean exit = false;
+		String userCommandLine = null;
+		String[] commandParts;
+		UserAction action = null;
 
-		//Check the number of command line parameters
-		if (args.length < 1)
-		{
-			System.out.println("Usage: client <Server IP Address>");
-			System.exit(1);
-		}
+		do {
+			userCommandLine = getUserInput();
+			commandParts = userCommandLine.split(" ");
 
-		// Try to open a socket on SERVER_PORT
-		// Try to open input and output streams
-		try
-		{
-			Display("Initializing base.Client...");
+			exit = isExitCommand(commandParts[0]);
+			sendToServer(userCommandLine);
 
-			clientSocket = new Socket(args[0], SERVER_PORT);
-			os = new PrintStream(clientSocket.getOutputStream());
-			is = new BufferedReader (
-					new InputStreamReader(clientSocket.getInputStream()));
-			stdInput = new BufferedReader(new InputStreamReader(System.in));
+			if (!exit) {
+				action = UserAction.determineAction(this, commandParts[0]);
+				action.execute();
+			}
 
-			Display("base.Client initialized!");
-		}
-		catch (UnknownHostException e)
-		{
-			System.err.println("Don't know about host: hostname");
-		}
-		catch (IOException e)
-		{
-			System.err.println("Couldn't get I/O for the connection to: hostname");
-		}
+		} while (!exit);
+	}
+
+	public void start() {
 
 		// If everything has been initialized then we want to write some data
-		// to the socket we have opened a connection to on port 25
-
-        if (clientSocket != null && os != null && is != null)
-		{
-            try
-			{
-				do
-				{
-					userInput = acquireClientInput();
-					os.println(userInput);
-					serverInput = is.readLine();
-
-					switch (userInput) {
-						case "MSGGET":
-							serverInput += "\n" + is.readLine();
-							break;
-						case "MSGSTORE":
-							if (serverInput.equals("200 OK")) {
-								System.out.println(serverInput);
-								userInput = stdInput.readLine();
-								os.println(userInput);
-								serverInput = is.readLine();
-							}
-							break;
-					}
-
-					System.out.println(serverInput);
-
-				} while (!userInput.equals("QUIT"));
-
-				// close the input and output stream
-				// close the socket
-
-				os.close();
-				is.close();
-				clientSocket.close();
-			}
-			catch (IOException e)
-			{
-				System.err.println("IOException: " + e);
-			}
-			catch (Exception e) {
-				System.err.println("Exception: " + e);
-			}
+		try {
+			communicateOverSocket();
+		}
+		catch (Exception e) {
+			System.err.println(e);
 		}
 	}
 
-	private static String acquireClientInput() throws Exception {
-		Display("Waiting for client input...");
-		String response = stdInput.readLine();
-
-		return response;
+	public void endClientSession() throws Exception {
+		socketIStream.close();
+		socketOStream.close();
+		socket.close();
 	}
 
-    public static void main(String[] args) 
-    {
-    	System.out.println("base.Client started!");
-
-    	try {
-    		test(args);
-		}
-    	catch (Exception e) {
-    		System.err.println(e);
-    		System.exit(-1);
-		}
-
-    	System.out.println("base.Client terminated!");
-    }
+	public String getUserInput() throws Exception {
+		// System.out.print("Command: ");
+		return stdInput.readLine();
+	}
 }

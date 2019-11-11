@@ -13,7 +13,7 @@ import exceptions.Server401Exception;
 import roles.*;
 import shared.*;
 
-public class ServerInstance implements Runnable {
+public class ServerInstance extends Node implements Runnable {
     public static final int MESSAGE_LIMIT = 20;
     private static CircularQueue<String> messages = new CircularQueue<>(MESSAGE_LIMIT);
 
@@ -22,46 +22,11 @@ public class ServerInstance implements Runnable {
     private static List<String> usersAndPasswords;
     private static HashMap<String, String> users;
 
-    private ServerMemberData smd;
-//    private static ServerSocket myServerice = null;
-//    private static Socket serviceSocket = null;
-//    private static BufferedReader is;
-//    private static PrintStream os;
-
-    private UserProfile user = new AnonymousUser();
+    private UserProfile user = new AnonymousUser(this);
     private volatile boolean terminate = false;
 
-    public ServerInstance(ServerMemberData smd) {
-        this.smd = new ServerMemberData(smd);
-    }
-
-
-    public ServerInstance() {
-        // to avoid deadlock, init outside of class with the manager
-
-//        try {
-//
-//            init();
-//        }
-//        catch (Exception e) {
-//            System.err.println(e.getMessage());
-//        }
-    }
-
-    @Override
-    public void run() {
-        try {
-//            // Create a socket object from the ServerSocket to listen and accept connections.
-//            openServerSocket();
-//
-//            // Open input and output streams
-//            acquireClientStreams();
-            interpretClientInput(); // loops until client disconnects
-            endConnection();
-        }
-        catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+    public ServerInstance(ServerManager creator) {
+        super(creator);
     }
 
     public static void init() throws Exception {
@@ -78,24 +43,25 @@ public class ServerInstance implements Runnable {
     }
 
     public void setMOTD(String motd) { messageOfTheDay = motd;}
-    public String getMOTD() { return messageOfTheDay; }
 
-    public PrintStream getOS() { return smd.ostream; }
+    public String getMOTD() { return messageOfTheDay; }
+    public PrintStream getOS() { return socketOStream; }
+
     public CircularQueue<String> getMessageQueue() { return messages; }
     public boolean isUserLoggedIn() { return user instanceof BasicUser; }
-    public BufferedReader getIS() { return smd.istream; }
+    public BufferedReader getIS() { return socketIStream; }
     public BufferedWriter getOutputFileStream() { return ofstream; }
     public UserProfile getUser() { return user; }
     public void setUser(UserProfile profile) { user = profile; }
     public HashMap<String, String> getUsers() { return users; }
     public void terminate() { terminate = true; }
-
     private static void InitUsersFromFile(String filename) throws Exception {
         Utility.display("Try to get users and passwords from provided file...");
 
-        URL usersURL = ServerInstance.class.getResource(filename);
-        users = new HashMap<>();
+        URL usersURL = ServerInstance.class.getClassLoader().getResource(filename);
+        if (usersURL == null) throw new FileNotFoundException(filename);
 
+        users = new HashMap<>();
         usersAndPasswords = Files.readAllLines(Paths.get(usersURL.toURI()), StandardCharsets.UTF_8);
         for (String m : usersAndPasswords) {
             String[] partition = m.split(" ");
@@ -108,9 +74,10 @@ public class ServerInstance implements Runnable {
     private static void QueueMessagesFromFile(String filename) throws Exception {
         Utility.display("Try to queue stored messages to internal message queue...");
 
-        URL msgs = ServerInstance.class.getResource(filename);
-        List<String> fileMessages;
+        URL msgs = ServerInstance.class.getClassLoader().getResource(filename);
+        if (msgs == null) throw new FileNotFoundException(filename);
 
+        List<String> fileMessages;
         fileMessages = Files.readAllLines(Paths.get(msgs.toURI()), StandardCharsets.UTF_8);
         // this is a circular queue: elements removed from the front go to the back of the queue
         messages.addAll(fileMessages);
@@ -129,9 +96,9 @@ public class ServerInstance implements Runnable {
 
 	private void endConnection() throws Exception {
         //close input and output stream and socket
-        smd.istream.close();
-        smd.ostream.close();
-        smd.socket.close();
+        socketIStream.close();
+        socketOStream.close();
+        socket.close();
     }
 
 	private void interpretClientInput() throws Exception {
@@ -140,24 +107,25 @@ public class ServerInstance implements Runnable {
         while (!terminate)
         {
             try {
-                userCommand = smd.istream.readLine();
+                userCommand = socketIStream.readLine();
                 user.call(userCommand);
-                smd.ostream.println(ServerResponseCode.OK);
+                // socketOStream.println(ServerResponseCode.OK.VALUE);
             }
             catch (Server401Exception e) {
-                smd.ostream.println(e.getMessage());
+                socketOStream.println(e.getMessage());
             }
         }
 
     }
 
-//    private static void openServerSocket() throws Exception {
-//        myServerice = new ServerSocket(CommunicationData.SERVER_PORT); // establish a socket to put on the target port
-//    }
-//
-//    private static void acquireClientStreams() throws Exception {
-//        serviceSocket = myServerice.accept(); //
-//        is = new BufferedReader (new InputStreamReader(serviceSocket.getInputStream()));
-//        os = new PrintStream(serviceSocket.getOutputStream());
-//    }
+    @Override
+    public void run() {
+        try {
+            interpretClientInput(); // loops until client disconnects
+            endConnection();
+        }
+        catch (Exception e) {
+            System.err.println(e);
+        }
+    }
 }

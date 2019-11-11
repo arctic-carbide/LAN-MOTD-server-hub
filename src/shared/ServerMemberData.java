@@ -2,11 +2,12 @@ package shared;
 
 import java.net.ServerSocket;
 
-public class ServerMemberData extends ClientMemberData {
-    private ServerSocket serverSocket;
+public class ServerMemberData extends Node {
+
+    public ServerSocket serverSocket;
 
     public ServerMemberData() throws Exception {
-        serverSocket = new ServerSocket(CommunicationData.SERVER_PORT);
+        serverSocket = new ServerSocket(SOCKET_PORT);
     }
 
     public ServerMemberData(ServerMemberData source) {
@@ -14,8 +15,8 @@ public class ServerMemberData extends ClientMemberData {
         serverSocket = source.serverSocket;
     }
 
-    public void establishConnection() throws Exception {
-        socket = serverSocket.accept(); // waits and listens for a connection on the socket
+    public void listen() throws Exception {
+        socket = serverSocket.accept();
         acquireSocketStreams();
     }
 }

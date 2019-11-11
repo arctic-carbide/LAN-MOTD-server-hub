@@ -7,12 +7,8 @@ public enum ServerExceptionMessage {
     UNAUTHORIZED_COMMAND("You are not currently logged in, log in first")
     ;
 
-
-    private final String message;
-
+    public final String MESSAGE;
     ServerExceptionMessage(String s) {
-        message = s;
+        MESSAGE = s;
     }
-
-    public String getMessage() { return message; }
 }
