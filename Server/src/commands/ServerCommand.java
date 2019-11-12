@@ -10,12 +10,17 @@ public abstract class ServerCommand {
     protected ServerInstance server;
 
     public void execute(ServerInstance instance) {
-        server = instance;
-        call();
+        try {
+            server = instance;
+            call();
+        }
+        catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
     }
 
-    public abstract void call();
-    public void setServer(ServerInstance ref) { server = ref; }
+    protected abstract void call() throws Exception;
+    // public void setServer(ServerInstance ref) { server = ref; }
 
 
 
@@ -31,7 +36,7 @@ public abstract class ServerCommand {
             case LOGOUT: return new LogoutCommand();
             case SHUTDOWN: return new ShutdownCommand();
             case WHO: return new WhoCommand();
-            case SEND: return new SendCommand();
+            case SEND: return new SendCommand(parts[1]);
             default: throw new InvalidCommandException();
         }
     }

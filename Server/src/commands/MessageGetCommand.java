@@ -5,7 +5,7 @@ import shared.*;
 
 public class MessageGetCommand extends AnonymousUserCommand {
 
-    public void call() {
+    public void call() throws Exception {
         forwardMessageToClient();
     }
 

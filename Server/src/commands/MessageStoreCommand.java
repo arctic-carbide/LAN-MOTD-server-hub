@@ -6,13 +6,9 @@ import shared.Utility;
 
 public class MessageStoreCommand extends ServerCommand {
 
-    public void call() {
-        try {
-            storeClientMessage();
-        }
-        catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
+    @Override
+    public void call() throws Exception {
+        storeClientMessage();
     }
 
     private void storeClientMessage() throws Exception {
@@ -40,7 +36,6 @@ public class MessageStoreCommand extends ServerCommand {
         // else, if doesn't and returns false
 
         Utility.display("Try to store user message into server...");
-        // System.out.println("Try to store user message into server...");
         if (server.getMessageQueue().offer(message)) {
             server.getOutputFileStream().write(message); // append that message to the external file
             server.getOutputFileStream().newLine();

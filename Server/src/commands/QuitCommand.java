@@ -2,7 +2,7 @@ package commands;
 
 public class QuitCommand extends AnonymousUserCommand {
 
-    public void call() {
+    public void call() throws Exception {
         // TODO: FINISH QUIT COMMAND
         terminateClientConnection();
     }

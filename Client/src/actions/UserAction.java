@@ -18,7 +18,7 @@ public abstract class UserAction {
         CommandName command = CommandName.valueOf(userCommand);
 
         switch (command) {
-            case MSGGET: return new MessageGetAction(caller);
+            // case MSGGET: return new MessageGetAction(caller); // no longer needed, with an response monitor
             case MSGSTORE: return new MessageStoreAction(caller);
             case QUIT: return new QuitAction(caller);
             default: return new NoAction();
@@ -27,8 +27,8 @@ public abstract class UserAction {
 
     public void execute() {
         try {
-            serverResponse = caller.retrieveServerResponse();
-            System.out.println(serverResponse);
+//            serverResponse = caller.retrieveServerResponse();
+//            System.out.println(serverResponse);
 
             hook();
         }

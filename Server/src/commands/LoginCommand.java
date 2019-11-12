@@ -17,7 +17,7 @@ public class LoginCommand extends AnonymousUserCommand {
     }
 
 
-    public void call() {
+    public void call() throws Exception {
         try {
             logClientIntoServer();
             server.getOS().println(ServerResponseCode.OK.VALUE);
@@ -43,12 +43,15 @@ public class LoginCommand extends AnonymousUserCommand {
 
     private void determineUserType() {
         System.out.println("Determining user type...");
+
+        server.getActiveUsers().remove(server.getUser());
         if (username.equals(RootUser.ROOT_NAME)) {
-            server.setUser(new RootUser(server));
+            server.transformUser(new RootUser(server));
         }
         else {
-            server.setUser(new BasicUser(server, username));
+            server.transformUser(new BasicUser(server, username));
         }
+        server.getActiveUsers().add(server.getUser());
     }
 
     private void validatePassword() {

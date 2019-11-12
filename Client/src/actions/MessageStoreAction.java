@@ -11,18 +11,18 @@ public class MessageStoreAction extends UserAction {
 
     @Override
     public void hook() throws Exception {
-        storeMessage();
+        sendMOTDMessageToStore();
     }
 
-    private void storeMessage() throws Exception {
+    private void sendMOTDMessageToStore() throws Exception {
         String message = null;
 
         if (serverResponse.equals(ServerResponseCode.OK.VALUE)) {
             message = caller.getUserInput();
             caller.sendToServer(message);
 
-            serverResponse = caller.retrieveServerResponse();
-            System.out.println(serverResponse);
+//            serverResponse = caller.retrieveServerResponse();
+//            System.out.println(serverResponse);
         }
     }
 }

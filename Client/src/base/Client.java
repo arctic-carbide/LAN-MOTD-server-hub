@@ -10,6 +10,20 @@ import shared.*;
 
 public class Client extends Node {
 	private BufferedReader stdInput;
+	private BufferedReader messages;
+
+	// TODO: COMMUNICATE FROM ONE CLIENT TO ANOTHER USING A SEPARATE SOCKET CHANNEL
+	// THE CURRENT CHANNEL IS BEING USED FOR STRICTLY COMMAND AND RESPONSE SIGNALS
+	// BUT IF A CLIENT SENDS A MESSAGE TO ANOTHER USER, IT NEEDS TO BE READ IMMEDIATELY
+	// THIS IS POSSIBLE OVER A SINGLE SOCKET BUT THE CHANNEL COULD GET BOGGED WITH MESSAGES
+	// THE SOLUTION IS TO USE A SEPARATE SOCKET CHANNEL TO COMMUNICATE
+
+	// ON THE CLIENT, CREATE A THREAD TO LISTEN FOR MESSAGES DIRECTED TO IT
+	// READ THOSE MESSAGES AND DISPLAY THEM IMMEDIATELY
+	// IN THIS CASE, WE WILL ASSUME IMMEDIATELY MEANS
+
+	// ON A SINGLE CHANNEL, WHAT WE CAN DO IS CHECK THE MAIN SOCKET CHANNEL AFTER EVERY COMMAND SENT
+	// THIS MEANS THE SERVER WILL HAVE TO WITHHOLD THE MESSAGE UNTIL IT'S DONE HANDLING THE LAST COMMAND
 
 	public Client(String IP) throws Exception {
 		establishConnection(IP);
@@ -74,10 +88,17 @@ public class Client extends Node {
 		} while (!exit);
 	}
 
+	private void instantiateMessageMonitor() {
+		MessageReceiver messages = new MessageReceiver(socketIStream);
+		Thread thread = new Thread(messages);
+
+		thread.start();
+	}
+
 	public void start() {
 
-		// If everything has been initialized then we want to write some data
 		try {
+			instantiateMessageMonitor();
 			communicateOverSocket();
 		}
 		catch (Exception e) {

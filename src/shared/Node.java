@@ -1,5 +1,7 @@
 package shared;
 
+import jdk.nashorn.internal.objects.annotations.Getter;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -10,6 +12,8 @@ public abstract class Node {
     protected BufferedReader socketIStream;
     protected PrintStream socketOStream;
 
+    public Socket getSocket() { return socket; }
+
     protected Node() {}
 
     protected Node(Node source) {
@@ -19,16 +23,16 @@ public abstract class Node {
     }
 
     public void acquireSocketStreams() throws Exception {
-        socketIStream = adaptStream(socket.getInputStream());
-        socketOStream = adaptStream(socket.getOutputStream());
+        socketIStream = wrapStream(socket.getInputStream());
+        socketOStream = wrapStream(socket.getOutputStream());
     }
 
-    private BufferedReader adaptStream(InputStream is) {
+    private BufferedReader wrapStream(InputStream is) {
         InputStreamReader isr = new InputStreamReader(is);
         return new BufferedReader(isr);
     }
 
-    private PrintStream adaptStream(OutputStream os) {
+    private PrintStream wrapStream(OutputStream os) {
         return new PrintStream(os);
     }
 }

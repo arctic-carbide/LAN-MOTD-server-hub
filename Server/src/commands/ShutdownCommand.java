@@ -2,7 +2,7 @@ package commands;
 
 public class ShutdownCommand extends ServerCommand {
 
-    public void call() {
+    public void call() throws Exception {
         shutdownServer();
     }
 

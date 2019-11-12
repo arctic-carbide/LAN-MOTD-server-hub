@@ -6,7 +6,7 @@ import roles.UserProfile;
 
 public class LogoutCommand extends BasicUserCommand {
 
-    public void call() {
+    public void call() throws Exception {
         logUserOutOfServer();
     }
 
@@ -15,7 +15,7 @@ public class LogoutCommand extends BasicUserCommand {
         UserProfile user = server.getUser();
         System.out.println("Logging user out...");
 
-        server.setUser(new AnonymousUser(server));
+        server.transformUser(new AnonymousUser(server));
         server.getOS().println(ServerResponseCode.OK.VALUE);
 
         System.out.println("Logout success!");

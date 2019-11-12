@@ -12,7 +12,6 @@ public class ServerManager extends Node {
     // SINGLETON BLOCK
     private static ServerManager instance;
     private ServerSocket serverSocket;
-    // private ServerMemberData serverData;
 
     private ServerManager() throws Exception {
         serverSocket = new ServerSocket(SOCKET_PORT);

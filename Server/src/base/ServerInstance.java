@@ -12,6 +12,7 @@ import java.util.*;
 import exceptions.Server401Exception;
 import roles.*;
 import shared.*;
+import sun.tools.jar.Main;
 
 public class ServerInstance extends Node implements Runnable {
     public static final int MESSAGE_LIMIT = 20;
@@ -21,13 +22,16 @@ public class ServerInstance extends Node implements Runnable {
     private static BufferedWriter ofstream;
     private static List<String> usersAndPasswords;
     private static HashMap<String, String> users;
+    private static HashSet<UserProfile> activeUsers = new HashSet<>();
 
     private UserProfile user = new AnonymousUser(this);
     private volatile boolean terminate = false;
 
     public ServerInstance(ServerManager creator) {
-        super(creator);
+        super(creator); // copies the socket and stream data
     }
+
+
 
     public static void init() throws Exception {
         Utility.display("Initializing internal server data...");
@@ -52,9 +56,13 @@ public class ServerInstance extends Node implements Runnable {
     public BufferedReader getIS() { return socketIStream; }
     public BufferedWriter getOutputFileStream() { return ofstream; }
     public UserProfile getUser() { return user; }
-    public void setUser(UserProfile profile) { user = profile; }
     public HashMap<String, String> getUsers() { return users; }
     public void terminate() { terminate = true; }
+    public HashSet<UserProfile> getActiveUsers() { return activeUsers; }
+
+    public void transformUser(UserProfile profile) { user = profile; }
+
+
     private static void InitUsersFromFile(String filename) throws Exception {
         Utility.display("Try to get users and passwords from provided file...");
 
@@ -96,6 +104,7 @@ public class ServerInstance extends Node implements Runnable {
 
 	private void endConnection() throws Exception {
         //close input and output stream and socket
+        activeUsers.remove(user);
         socketIStream.close();
         socketOStream.close();
         socket.close();
@@ -121,6 +130,7 @@ public class ServerInstance extends Node implements Runnable {
     @Override
     public void run() {
         try {
+            activeUsers.add(user);
             interpretClientInput(); // loops until client disconnects
             endConnection();
         }
