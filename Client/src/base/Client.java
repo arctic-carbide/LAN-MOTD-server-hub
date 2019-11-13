@@ -10,7 +10,7 @@ import shared.*;
 
 public class Client extends Node {
 	private BufferedReader stdInput;
-	private BufferedReader messages;
+	// private BufferedReader messages;
 
 	// TODO: COMMUNICATE FROM ONE CLIENT TO ANOTHER USING A SEPARATE SOCKET CHANNEL
 	// THE CURRENT CHANNEL IS BEING USED FOR STRICTLY COMMAND AND RESPONSE SIGNALS
