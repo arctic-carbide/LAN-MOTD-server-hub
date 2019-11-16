@@ -14,13 +14,14 @@ public abstract class UserAction {
         serverResponse = r;
     }
 
-    public static UserAction determineAction(Client caller, String userCommand) {
-        CommandName command = CommandName.valueOf(userCommand);
+    public static UserAction determineAction(Client caller, String[] partitionedCommandLine) {
+        CommandName command = CommandName.valueOf(partitionedCommandLine[0]);
 
         switch (command) {
             // case MSGGET: return new MessageGetAction(caller); // no longer needed, with an response monitor
             case MSGSTORE: return new MessageStoreAction(caller);
             case QUIT: return new QuitAction(caller);
+            case SEND: return new SendAction(caller, partitionedCommandLine[1]);
             default: return new NoAction();
         }
     }

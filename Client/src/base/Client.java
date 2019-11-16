@@ -81,7 +81,7 @@ public class Client extends Node {
 			sendToServer(userCommandLine);
 
 			if (!exit) {
-				action = UserAction.determineAction(this, commandParts[0]);
+				action = UserAction.determineAction(this, commandParts);
 				action.execute();
 			}
 

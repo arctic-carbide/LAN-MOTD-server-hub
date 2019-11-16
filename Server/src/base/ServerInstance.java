@@ -59,6 +59,8 @@ public class ServerInstance extends Node implements Runnable {
     public HashMap<String, String> getUsers() { return users; }
     public void terminate() { terminate = true; }
     public HashSet<UserProfile> getActiveUsers() { return activeUsers; }
+    public void respondOK(String extra) { socketOStream.println(ServerResponseCode.OK.VALUE + " " + extra);}
+    public void respondOK() { socketOStream.println(ServerResponseCode.OK.VALUE);}
 
     public void transformUser(UserProfile profile) { user = profile; }
 
@@ -130,7 +132,6 @@ public class ServerInstance extends Node implements Runnable {
     @Override
     public void run() {
         try {
-            activeUsers.add(user);
             interpretClientInput(); // loops until client disconnects
             endConnection();
         }

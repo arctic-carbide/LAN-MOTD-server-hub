@@ -18,13 +18,13 @@ public class LoginCommand extends AnonymousUserCommand {
 
 
     public void call() throws Exception {
-        try {
+//        try {
             logClientIntoServer();
-            server.getOS().println(ServerResponseCode.OK.VALUE);
-        }
-        catch (Server401Exception e) {
-            server.getOS().println(e.getMessage());
-        }
+//            server.getOS().println(ServerResponseCode.OK.VALUE);
+//        }
+//        catch (Server401Exception e) {
+//            server.getOS().println(e.getMessage());
+//        }
     }
 
     private void validateCommandArguments(String[] args) throws Server401Exception {
@@ -44,7 +44,6 @@ public class LoginCommand extends AnonymousUserCommand {
     private void determineUserType() {
         System.out.println("Determining user type...");
 
-        server.getActiveUsers().remove(server.getUser());
         if (username.equals(RootUser.ROOT_NAME)) {
             server.transformUser(new RootUser(server));
         }
@@ -59,13 +58,9 @@ public class LoginCommand extends AnonymousUserCommand {
         String requiredPassword = server.getUsers().get(username); // retrieves the password value associated with user
 
         System.out.println("Comparing supplied password to registered user password...");
-        if (password.equals(requiredPassword)) {
-            determineUserType();
-        }
-        else {
+        if (!password.equals(requiredPassword)) {
             System.out.println("Login fail!");
             throw new InvalidLoginArgumentsException();
-            // server.getOS().println(ServerResponseCode.FAIL + "UserID or Password");
         }
     }
 

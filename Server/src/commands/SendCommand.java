@@ -1,9 +1,8 @@
 package commands;
 
+import exceptions.NullUserException;
 import roles.UserProfile;
 import shared.ServerResponseCode;
-
-import java.util.List;
 
 public class SendCommand extends BasicUserCommand {
     private String targetUser;
@@ -13,28 +12,41 @@ public class SendCommand extends BasicUserCommand {
     }
 
     public void call() throws Exception {
-        sendMessage();
+        UserProfile user = findUser();
+        sendMessageToUser(user);
     }
 
-    private void sendMessage() throws Exception {
-        String message;
+    private UserProfile findUser() throws Exception {
+        UserProfile userFound = null;
 
         for (UserProfile u : server.getActiveUsers()) {
-
             if (u.getUsername().equals(targetUser)) {
-
-                synchronized (u) { // allow only one thread to send a message to a certain user a time
-                    message = server.getIS().readLine();
-
-                    u.getServer().getOS().println(ServerResponseCode.OK.VALUE + " you have a new message from " + u.getUsername());
-                    u.getServer().getOS().println(u.getUsername() + ": " + message);
-                }
-
-                server.getOS().println(ServerResponseCode.OK.VALUE);
+                userFound = u;
+                break;
             }
-
         }
 
+        if (userFound == null) {
+            throw new NullUserException();
+        }
+
+        server.respondOK();
+        return userFound;
+    }
+
+    private void sendMessageToUser(UserProfile recipient) throws Exception {
+        String message = null;
+        String senderName = null;
+
+        synchronized (server.getIS()) {
+            message = server.getIS().readLine();
+            senderName = server.getUser().getUsername();
+
+            recipient.getServer().respondOK("you have a new message from " + senderName);
+            recipient.getServer().getOS().println(senderName + ": " + message);
+        }
+
+        // server.respondOK();
     }
 
 }

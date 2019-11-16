@@ -12,9 +12,10 @@ public class LogoutCommand extends BasicUserCommand {
 
     private void logUserOutOfServer() {
         // rootUser = false;
-        UserProfile user = server.getUser();
+        // UserProfile user = server.getUser();
         System.out.println("Logging user out...");
 
+        server.getActiveUsers().remove(server.getUser());
         server.transformUser(new AnonymousUser(server));
         server.getOS().println(ServerResponseCode.OK.VALUE);
 

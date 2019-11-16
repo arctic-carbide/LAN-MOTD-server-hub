@@ -1,9 +1,11 @@
 package commands;
 
 import base.ServerInstance;
+import com.sun.security.ntlm.Server;
 import exceptions.InvalidCommandException;
 import exceptions.Server401Exception;
 import shared.CommandName;
+import shared.ServerResponseCode;
 
 public abstract class ServerCommand {
     // public static final ServerCommand DEFAULT_COMMAND = new LogoutCommand();
@@ -12,10 +14,18 @@ public abstract class ServerCommand {
     public void execute(ServerInstance instance) {
         try {
             server = instance;
-            call();
+
+            call(); // defined in derived classes
+
+            server.getOS().println(ServerResponseCode.OK.VALUE); // printed if no exceptions occurred
+        }
+        catch (Server401Exception e) { // error displayed to user
+
+            server.getOS().println(e.getMessage());
+
         }
         catch (Exception e) {
-            System.err.println(e.getMessage());
+
         }
     }
 
