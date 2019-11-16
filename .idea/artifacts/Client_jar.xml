@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/Client_jar</output-path>
     <root id="archive" name="Client.jar">
       <element id="module-output" name="Client" />
+      <element id="module-output" name="AI -- Client-Server App" />
     </root>
   </artifact>
 </component>
