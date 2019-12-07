@@ -8,6 +8,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="AI -- Client-Server App" />
+    <orderEntry type="module" module-name="AI -- Client-Server App" exported="" />
   </component>
 </module>

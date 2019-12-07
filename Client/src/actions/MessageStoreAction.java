@@ -17,7 +17,7 @@ public class MessageStoreAction extends UserAction {
     private void sendMOTDMessageToStore() throws Exception {
         String message = null;
 
-        if (serverResponse.equals(ServerResponseCode.OK.VALUE)) {
+        if (caller.messages.serverOK()) {
             message = caller.getUserInput();
             caller.sendToServer(message);
 

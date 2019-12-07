@@ -5,6 +5,7 @@ package base;/*
 import java.io.*;
 import java.net.Socket;
 
+import actions.NoAction;
 import actions.UserAction;
 import shared.*;
 
@@ -74,22 +75,31 @@ public class Client extends Node {
 		UserAction action = null;
 
 		do {
+			System.out.print(">");
 			userCommandLine = getUserInput();
 			commandParts = userCommandLine.split(" ");
 
-			exit = isExitCommand(commandParts[0]);
-			sendToServer(userCommandLine);
-
-			if (!exit) {
+//			exit = isExitCommand(commandParts[0]);
+			try {
 				action = UserAction.determineAction(this, commandParts);
-				action.execute();
+				sendToServer(userCommandLine);
+
+				if (!action.isQuit()) {
+					action.execute();
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Invalid Command");
+				action = new NoAction();
 			}
 
-		} while (!exit);
+			// socketIStream.ready(); // wait for the server to come back with a response
+		} while (!action.isQuit());
 	}
 
+	public MessageReceiver messages;
 	private void instantiateMessageMonitor() {
-		MessageReceiver messages = new MessageReceiver(socketIStream);
+		messages = new MessageReceiver(socketIStream);
 		Thread thread = new Thread(messages);
 
 		thread.start();

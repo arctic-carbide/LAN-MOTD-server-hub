@@ -38,5 +38,7 @@ public abstract class UserAction {
         }
     }
 
+    public boolean isQuit() { return this instanceof QuitAction; }
+
     protected abstract void hook() throws Exception;
 }
